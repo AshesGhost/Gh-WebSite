@@ -1,1 +1,405 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AshesGhost — First Post</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oxanium:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #00ff41;
+      --green-dim: #00cc33;
+      --green-dark: #003f10;
+      --bg: #020c02;
+      --bg2: #0a100a;
+      --border: #1a2a1a;
+      --text: #c9d1d9;
+      --text-dim: #6a7580;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      line-height: 1.9;
+      overflow-x: hidden;
+    }
+
+    canvas#matrix {
+      position: fixed; inset: 0;
+      opacity: 0.05; z-index: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,65,0.012) 2px, rgba(0,255,65,0.012) 4px);
+      pointer-events: none; z-index: 1;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 48px;
+      background: rgba(2,12,2,0.93);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { color: var(--green); font-size: 16px; font-weight: 600; letter-spacing: 2px; text-decoration: none; }
+    .nav-logo span { color: var(--text-dim); }
+    nav ul { list-style: none; display: flex; gap: 28px; }
+    nav ul a { color: var(--text-dim); text-decoration: none; font-size: 12px; letter-spacing: 1.5px; transition: color 0.2s; }
+    nav ul a:hover, nav ul a.active { color: var(--green); }
+
+    /* LAYOUT */
+    .page-wrap {
+      position: relative; z-index: 2;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 130px 40px 80px;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb {
+      font-size: 11px; color: var(--text-dim);
+      letter-spacing: 1.5px; margin-bottom: 40px;
+    }
+    .breadcrumb a { color: var(--green-dim); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--green); }
+    .breadcrumb span { color: var(--border); margin: 0 8px; }
+
+    /* POST HEADER */
+    .post-header { margin-bottom: 48px; }
+    .post-tag-line { display: flex; gap: 10px; margin-bottom: 14px; }
+    .post-tag {
+      font-size: 10px; letter-spacing: 1.5px;
+      color: var(--green-dim); border: 1px solid var(--green-dark);
+      padding: 3px 10px;
+    }
+    .post-tag.blue { color: #6bcfff; border-color: #0d2233; }
+
+    .post-title {
+      font-family: 'Oxanium', monospace;
+      font-size: clamp(26px, 4.5vw, 42px);
+      color: var(--green);
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+    }
+
+    .post-meta-row {
+      display: flex; gap: 24px; align-items: center;
+      font-size: 11px; color: var(--text-dim);
+      letter-spacing: 1px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .post-meta-row .author { color: var(--green-dim); }
+
+    /* POST BODY */
+    .post-body { margin-bottom: 60px; }
+
+    /* ── Typography inside post ── */
+    .post-body p {
+      margin-bottom: 20px;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .post-body h2 {
+      font-family: 'Oxanium', monospace;
+      font-size: 20px;
+      color: var(--green);
+      margin: 40px 0 14px;
+      padding-left: 12px;
+      border-left: 3px solid var(--green);
+    }
+
+    .post-body h3 {
+      font-size: 14px;
+      color: var(--green-dim);
+      letter-spacing: 2px;
+      margin: 28px 0 10px;
+    }
+    .post-body h3::before { content: '## '; color: var(--border); }
+
+    /* inline code */
+    .post-body code {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--green-dim);
+      padding: 1px 6px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+    }
+
+    /* code block */
+    .post-body pre {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green-dark);
+      padding: 20px 24px;
+      margin: 24px 0;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .post-body pre code {
+      background: none; border: none;
+      color: var(--text); padding: 0;
+    }
+    /* syntax colors inside pre */
+    .post-body pre .kw  { color: #569cd6; }
+    .post-body pre .str { color: #ce9178; }
+    .post-body pre .cmt { color: var(--text-dim); }
+    .post-body pre .fn  { color: #dcdcaa; }
+    .post-body pre .num { color: #b5cea8; }
+
+    /* terminal block */
+    .terminal-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      margin: 24px 0;
+    }
+    .term-bar {
+      padding: 9px 16px; background: #111;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
+    .term-label { margin-left: 8px; font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+    .term-content { padding: 18px 22px; font-size: 13px; line-height: 1.7; }
+    .term-content .prompt { color: var(--green); }
+    .term-content .out { color: var(--text-dim); }
+    .term-content .ok  { color: #27c93f; }
+    .term-content .err { color: #ff5f56; }
+
+    /* blockquote */
+    .post-body blockquote {
+      border-left: 3px solid var(--green-dark);
+      padding: 12px 20px;
+      margin: 24px 0;
+      color: var(--text-dim);
+      font-style: italic;
+      background: var(--bg2);
+    }
+
+    /* list */
+    .post-body ul, .post-body ol {
+      margin: 16px 0 20px 0;
+      padding-left: 20px;
+    }
+    .post-body li { margin-bottom: 6px; color: var(--text); }
+    .post-body li::marker { color: var(--green); }
+
+    /* separator */
+    .post-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    /* POST FOOTER */
+    .post-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      padding: 9px 20px;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .btn:hover { border-color: var(--green); color: var(--green); }
+    .btn.primary { background: var(--green); color: #000; border-color: var(--green); font-weight: 600; }
+    .btn.primary:hover { background: #fff; border-color: #fff; }
+
+    footer {
+      position: relative; z-index: 2;
+      border-top: 1px solid var(--border);
+      padding: 28px 40px;
+      text-align: center;
+      font-size: 11px; color: var(--text-dim); letter-spacing: 1px;
+    }
+    footer a { color: var(--green); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      nav { padding: 14px 20px; }
+      .page-wrap { padding: 100px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<nav>
+  <a href="/index.html" class="nav-logo">Ashes<span>Ghost</span></a>
+
+</nav>
+
+<div class="page-wrap">
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb">
+    <a href="index.html">~</a>
+    <span>/</span>
+    <a href="/all-post.html">posts</a>
+    <span>/</span>
+    welcome-first-post
+  </div>
+
+  <!-- POST HEADER -->
+  <header class="post-header">
+    <div class="post-tag-line">
+      <span class="post-tag">WRITEUP</span>
+      <span class="post-tag blue">INTRO</span>
+    </div>
+    <h1 class="post-title">Welcome to my Blog —<br>First Post</h1>
+    <div class="post-meta-row">
+      <span class="author">AshesGhost</span>
+      <span>2025-01-01</span>
+      <span>~3 min read</span>
+    </div>
+  </header>
+
+  <!-- POST BODY — EDIT EVERYTHING BELOW THIS LINE -->
+  <article class="post-body">
+
+    <p>
+      Welcome. If you're reading this, you found your way to the right corner of the internet.
+      This is my blog — a place where I'll document everything I learn in the cyber world:
+      hacking experiments, CTF writeups, CLI tools, and whatever I'm building in the terminal.
+    </p>
+
+    <h2>Why this blog?</h2>
+
+    <p>
+      The hacker mindset is built on one principle: <code>understand before you use</code>.
+      Writing forces me to understand. If I can't explain it clearly, I don't understand it yet.
+      So this blog is as much for me as it is for anyone reading.
+    </p>
+
+    <blockquote>
+      "The quieter you become, the more you can hear." — Keep your terminal open.
+    </blockquote>
+
+    <h2>What to expect</h2>
+
+    <ul>
+      <li>🔐 Pentest writeups & CTF walkthroughs</li>
+      <li>🛠️ CLI tool builds and devlogs</li>
+      <li>📡 Network analysis and recon techniques</li>
+      <li>⚙️ jackalSploit development updates</li>
+    </ul>
+
+    <h2>A quick demo</h2>
+
+    <p>Here's the kind of content you'll see — a typical recon session:</p>
+
+    <div class="terminal-block">
+      <div class="term-bar">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+        <span class="term-label">bash — AshesGhost@kali: ~</span>
+      </div>
+      <div class="term-content">
+        <div><span class="prompt">┌──(AshesGhost㉿kali)-[~]</span></div>
+        <div><span class="prompt">└─$ </span>nmap -sV -sC -oN scan.txt 10.10.10.X</div>
+        <div class="out">Starting Nmap 7.94 ( https://nmap.org )</div>
+        <div class="ok">PORT   STATE SERVICE VERSION</div>
+        <div class="out">22/tcp open  ssh     OpenSSH 8.4p1</div>
+        <div class="out">80/tcp open  http    Apache httpd 2.4.51</div>
+        <div><span class="prompt">└─$ </span>gobuster dir -u http://10.10.10.X -w /usr/share/wordlists/common.txt</div>
+        <div class="ok">/admin    (Status: 301)</div>
+        <div class="ok">/uploads  (Status: 200)</div>
+        <div class="err">/private  (Status: 403)</div>
+      </div>
+    </div>
+
+    <p>And the kind of code I'll share along the way:</p>
+
+    <pre><code><span class="cmt"># Quick port scanner — Python</span>
+<span class="kw">import</span> socket
+
+<span class="kw">def</span> <span class="fn">scan</span>(host, ports):
+    <span class="kw">for</span> port <span class="kw">in</span> ports:
+        s = socket.socket()
+        s.settimeout(<span class="num">0.5</span>)
+        result = s.connect_ex((host, port))
+        <span class="kw">if</span> result == <span class="num">0</span>:
+            <span class="fn">print</span>(<span class="str">f"[+] {host}:{port} — OPEN"</span>)
+        s.close()
+
+scan(<span class="str">"10.10.10.1"</span>, <span class="fn">range</span>(<span class="num">1</span>, <span class="num">1025</span>))</code></pre>
+
+    <hr>
+
+    <p>
+      That's it for the first post. More is coming — follow the GitHub repo or check back here.
+      The terminal is always open.
+    </p>
+
+  </article>
+  <!-- END POST BODY -->
+
+  <div class="post-footer">
+    <a href="all-post.html" class="btn">← all posts</a>
+    <a href="https://github.com/AshesGhost" target="_blank" class="btn primary">github.com/AshesGhost</a>
+  </div>
+
+</div>
+
+<footer>
+  <a href="index.html">AshesGhost</a> · Tunisia 🇹🇳 · <a href="all-post.html">all posts</a>
+</footer>
+
+<script>
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d');
+  let W, H, cols, drops;
+  function initMatrix() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cols = Math.floor(W / 14);
+    drops = Array(cols).fill(1);
+  }
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(2,12,2,0.05)';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#00ff41';
+    ctx.font = '14px Share Tech Mono';
+    const chars = 'アイウエカキクケコ01HACK#$%&BCD';
+    drops.forEach((y,i) => {
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*14, y*14);
+      if (y*14 > H && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+  initMatrix();
+  window.addEventListener('resize', initMatrix);
+  setInterval(drawMatrix, 50);
+</script>
+</body>
+</html>
